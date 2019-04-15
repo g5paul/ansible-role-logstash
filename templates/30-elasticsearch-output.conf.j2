@@ -1,7 +1,56 @@
 output {
-  elasticsearch {
-    hosts => {{ logstash_elasticsearch_hosts | to_json }}
-    index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
-    document_type => "%{[@metadata][type]}"
+  if [@metadata][pipeline] {
+     # Pipeline
+    elasticsearch {
+      hosts => {{ logstash_elasticsearch_hosts | to_json }}
+      manage_template => false
+      index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+      pipeline => "%{[@metadata][pipeline]}" 
+    }
+    # Store local copy of log
+    if [host][name] {
+      file {
+        path => "/var/log/logstash/%{[host][name]}/%{+YYYY-MM-dd}%{source}"
+        #codec => line { format => "custom format: %{message}"}
+      }
+      file {
+        path => "/var/log/logstash/%{+YYYY-MM-dd}%{source}"
+        #codec => line { format => "custom format: %{message}"}
+      }
+    } else {
+      file {
+        path => "/var/log/logstash/%{host]}/%{+YYYY-MM-dd}%{path}"
+      }
+      file {
+        path => "/var/log/logstash/%{+YYYY-MM-dd}%{path}"
+      }
+    }
+  } else {
+    # NO pipeline
+    elasticsearch {
+      hosts => {{ logstash_elasticsearch_hosts | to_json }}
+      manage_template => false
+      index => "%{[@metadata][beat]}-%{[@metadata][version]}-%{+YYYY.MM.dd}"
+      #index => "%{[@metadata][beat]}-%{+YYYY.MM.dd}"
+      #document_type => "%{[@metadata][type]}"
+    }
+    # Store local copy of log
+    if [host][name] {
+      file {
+        path => "/var/log/logstash/%{[host][name]}/%{+YYYY-MM-dd}%{source}"
+        #codec => line { format => "custom format: %{message}"}
+      }
+      file {
+        path => "/var/log/logstash/%{+YYYY-MM-dd}%{source}"
+        #codec => line { format => "custom format: %{message}"}
+      }
+    } else {
+      file {
+        path => "/var/log/logstash/%{host]}/%{+YYYY-MM-dd}%{path}"
+      }
+      file {
+        path => "/var/log/logstash/%{+YYYY-MM-dd}%{path}"
+      }
+    }
   }
 }
