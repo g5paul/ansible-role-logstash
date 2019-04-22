@@ -15,7 +15,6 @@ output {
       }
       file {
         path => "/var/log/logstash/%{+YYYY-MM-dd}%{source}"
-        #codec => line { format => "custom format: %{message}"}
       }
     } else {
       file {
@@ -25,7 +24,7 @@ output {
         path => "/var/log/logstash/%{+YYYY-MM-dd}%{path}"
       }
     }
-  } else {
+  } else if [@metadata][beat] {
     # NO pipeline
     elasticsearch {
       hosts => {{ logstash_elasticsearch_hosts | to_json }}
@@ -38,11 +37,29 @@ output {
     if [host][name] {
       file {
         path => "/var/log/logstash/%{[host][name]}/%{+YYYY-MM-dd}%{source}"
-        #codec => line { format => "custom format: %{message}"}
       }
       file {
         path => "/var/log/logstash/%{+YYYY-MM-dd}%{source}"
-        #codec => line { format => "custom format: %{message}"}
+      }
+    } else {
+      file {
+        path => "/var/log/logstash/%{host]}/%{+YYYY-MM-dd}%{path}"
+      }
+      file {
+        path => "/var/log/logstash/%{+YYYY-MM-dd}%{path}"
+      }
+    }
+  } else {
+    elasticsearch {
+      hosts => {{ logstash_elasticsearch_hosts | to_json }}
+    }
+    # Store local copy of log
+    if [host][name] {
+      file {
+        path => "/var/log/logstash/%{[host][name]}/%{+YYYY-MM-dd}%{source}"
+      }
+      file {
+        path => "/var/log/logstash/%{+YYYY-MM-dd}%{source}"
       }
     } else {
       file {
