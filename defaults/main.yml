@@ -21,3 +21,5 @@ logstash_enabled_on_boot: true
 
 logstash_install_plugins:
   - logstash-input-beats
+
+logstash_store_local_copy_of_log: false
